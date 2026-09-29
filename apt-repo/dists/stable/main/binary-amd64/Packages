@@ -1,0 +1,16 @@
+Package: dex
+Version: 2.45.1
+Section: net
+Priority: optional
+Architecture: amd64
+Maintainer: Dex APT Repository <noreply@github.com>
+Homepage: https://github.com/dexidp/dex
+Depends: libc6
+Description: Dex OpenID Connect identity provider
+ Unofficial package built from the upstream Dex release tag.
+Filename: pool/main/dex_2.45.1_amd64.deb
+Size: 10613682
+MD5sum: 68a965d7e3b5676f614dfa768cfa5621
+SHA256: 43a29b0a6997e0df9c681a341dc20b1bda4b44164472f9eb3afa5ef3b1ac444c
+SHA512: 681f5c23bccfc2bfef1319856cd7c1058c2c9e937c3c1aeb2637d871e5e1dbed805b5e1d2874f5beba8986b2b2fc1cfc07fa6b02b175ada617242cfffdf6b611
+

@@ -1,0 +1,23 @@
+Origin: Dex APT Repository
+Label: dex-idp-apt
+Suite: stable
+Codename: stable
+Architectures: amd64 arm64
+Components: main
+Description: Unofficial Dex packages built from upstream releases
+Date: Tue, 29 Sep 2026 15:10:15 +0000
+MD5Sum:
+ 868a808ce7e5329fb79b6f5d0790ea4c              607 main/binary-amd64/Packages
+ 448eb1de7559e2bbef3aa1b951419f4e              446 main/binary-amd64/Packages.gz
+ 3937b3b0ecbc0c6a382966eb9632b87b              606 main/binary-arm64/Packages
+ 0944eca4036a251729d6a08c76a60f4e              445 main/binary-arm64/Packages.gz
+SHA256:
+ f6f4ba51c2290af45b69bb9f9a9ac21469ff20b675307586e23393cfae84fcdb              607 main/binary-amd64/Packages
+ 25233b9854ec9284905cc11344e6afcec285d5945202cc4db8c3721ef82a3f30              446 main/binary-amd64/Packages.gz
+ 86ad2af13f2fe2ac0f01f30643c23a849ac344c66da60eb623c61044a8dafa99              606 main/binary-arm64/Packages
+ d4166ba8a5e9d72773a34fac9d5215aaf83edd5e1bca489e4529ec57f6ecc9e0              445 main/binary-arm64/Packages.gz
+SHA512:
+ df4f1d93a6f0d5632f666a5ec83f9a5fbf90db7660cfe037389fbe23cf1e8fdee350c8b35d518b77d65fc1cc3c0caaee7628aac93c389d30864f804861be4116              607 main/binary-amd64/Packages
+ 2d1a2b3cd810e6407feb8440cde8b8bed6003df06c5a077a7cfed5a7bbf1736caeedd5b29321940d46ff0f3d15af52a347365a98feb2306429fc1685a11f77cf              446 main/binary-amd64/Packages.gz
+ 4f469b3ba0228c8ed07020f00d68e5788adffa58b10f3c36cea9b72924724cd7673e2e1ee8a10bb07df28205e1fc68845748f638976e5ff0e19a8a29b60f9083              606 main/binary-arm64/Packages
+ 851e8e11a05a7c24df782ccf2167d03cdd62df874d1c11e5dd6a42c3283ac44fa40a0db6a184490aab471692c58e37bc1ee61d685f4453e5feb44fc393a5c670              445 main/binary-arm64/Packages.gz

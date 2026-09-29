@@ -1,0 +1,10 @@
+<!doctype html>
+<html lang="en"><meta charset="utf-8"><title>Dex APT Repository</title>
+<h1>Dex APT Repository</h1><p>Unofficial packages built from <a href="https://github.com/dexidp/dex/releases">Dex releases</a>.</p>
+<p>Architectures: amd64, arm64. Distribution: stable. Component: main.</p>
+<pre>curl -fsSL https://gesundes.github.io/dex-idp-apt/pubkey.gpg | sudo gpg --dearmor -o /etc/apt/keyrings/dex.gpg
+echo "deb [signed-by=/etc/apt/keyrings/dex.gpg] https://gesundes.github.io/dex-idp-apt stable main" | sudo tee /etc/apt/sources.list.d/dex.list
+sudo apt update
+apt-cache policy dex</pre>
+<h2>Packages</h2><ul><li><a href="pool/main/dex_2.45.1_amd64.deb">dex_2.45.1_amd64.deb</a></li>
+<li><a href="pool/main/dex_2.45.1_arm64.deb">dex_2.45.1_arm64.deb</a></li></ul><p><a href="pubkey.gpg">Repository signing key</a></p></html>
