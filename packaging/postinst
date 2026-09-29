@@ -1,0 +1,31 @@
+#!/bin/sh
+set -e
+
+if [ "$1" = configure ]; then
+    if ! getent passwd dexidp >/dev/null; then
+        adduser --system --group --home /var/lib/dex --no-create-home dexidp
+    fi
+    if [ -e /etc/dex/config.yaml ]; then
+        chown root:dexidp /etc/dex/config.yaml
+        chmod 0640 /etc/dex/config.yaml
+    fi
+    previously_managed=false
+    if command -v deb-systemd-helper >/dev/null 2>&1; then
+        if deb-systemd-helper --quiet debian-installed dexidp.service; then
+            previously_managed=true
+        fi
+        if deb-systemd-helper --quiet was-enabled dexidp.service; then
+            deb-systemd-helper enable dexidp.service >/dev/null || true
+        else
+            deb-systemd-helper update-state dexidp.service >/dev/null || true
+        fi
+    fi
+    if [ -d /run/systemd/system ]; then
+        systemctl daemon-reload >/dev/null || true
+        if [ "$previously_managed" = false ]; then
+            deb-systemd-invoke start dexidp.service || true
+        elif systemctl is-active --quiet dexidp.service; then
+            deb-systemd-invoke restart dexidp.service || true
+        fi
+    fi
+fi

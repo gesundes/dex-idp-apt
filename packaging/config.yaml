@@ -1,0 +1,11 @@
+# Local-only starter configuration. Set a public issuer URL, TLS and connectors
+# before using Dex as an identity provider for other applications.
+issuer: http://127.0.0.1:5556/dex
+storage:
+  type: sqlite3
+  config:
+    file: /var/lib/dex/dex.db
+web:
+  http: 127.0.0.1:5556
+# Provides a local connector so Dex can start. No users are preconfigured.
+enablePasswordDB: true

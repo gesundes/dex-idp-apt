@@ -14,7 +14,9 @@ def version(tag):
     return tuple(map(int, match.groups())) if match else None
 
 
-def select(releases, existing):
+def select(releases, existing, current_revision=None):
+    if current_revision is None:
+        current_revision = {}
     stable = [(version(item["tag_name"]), item["tag_name"]) for item in releases
               if not item["draft"] and not item["prerelease"] and version(item["tag_name"])]
     stable.sort(reverse=True)
@@ -23,13 +25,25 @@ def select(releases, existing):
     if not existing:
         return [stable[0][1]]
     newest = max(existing)
-    return [tag for number, tag in reversed(stable) if number > newest]
+    tags = [tag for number, tag in reversed(stable) if number > newest]
+    if current_revision.get(newest) != {"amd64", "arm64"}:
+        for number, tag in stable:
+            if number == newest:
+                tags.insert(0, tag)
+                break
+    return tags
 
 
 def main():
-    existing = {tuple(map(int, match.groups()))
+    revision = int(Path("packaging/revision").read_text().strip())
+    existing = {tuple(map(int, match.groups()[:3]))
                 for path in Path("apt-repo/pool/main").glob("dex_*_*.deb")
-                if (match := re.fullmatch(r"dex_(\d+)\.(\d+)\.(\d+)_.*\.deb", path.name))}
+                if (match := re.fullmatch(r"dex_(\d+)\.(\d+)\.(\d+)(?:-(\d+))?_(?:amd64|arm64)\.deb", path.name))}
+    current_revision = {}
+    for path in Path("apt-repo/pool/main").glob("dex_*_*.deb"):
+        match = re.fullmatch(r"dex_(\d+)\.(\d+)\.(\d+)-(\d+)_(amd64|arm64)\.deb", path.name)
+        if match and int(match.group(4)) == revision:
+            current_revision.setdefault(tuple(map(int, match.groups()[:3])), set()).add(match.group(5))
     token = os.environ.get("GH_TOKEN", "")
     headers = {"Accept": "application/vnd.github+json", "User-Agent": "dex-idp-apt"}
     if token:
@@ -42,7 +56,7 @@ def main():
         releases.extend(batch)
         if not batch or not existing or any(version(item["tag_name"]) in existing for item in batch):
             break
-    tags = select(releases, existing)
+    tags = select(releases, existing, current_revision)
     with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as output:
         output.write(f"tags={json.dumps(tags, separators=(',', ':'))}\n")
         output.write(f"has_new={'true' if tags else 'false'}\n")

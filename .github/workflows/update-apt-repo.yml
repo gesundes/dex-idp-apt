@@ -53,7 +53,7 @@ jobs:
           mkdir -p packages
           echo "$TAGS" | python3 -c 'import json,sys; print("\n".join(json.load(sys.stdin)))' | while IFS= read -r tag; do
             bash scripts/build-package.sh "$tag" "$ARCH"
-            mv "dex_${tag#v}_${ARCH}.deb" packages/
+            mv "dex_${tag#v}-$(cat packaging/revision)_${ARCH}.deb" packages/
           done
       - uses: actions/upload-artifact@v4
         with:
@@ -108,4 +108,3 @@ jobs:
       - name: Deploy Pages
         id: deploy
         uses: actions/deploy-pages@v4
-

@@ -1,0 +1,23 @@
+[Unit]
+Description=Dex OpenID Connect identity provider
+Documentation=https://dexidp.io/docs/
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+Type=simple
+User=dexidp
+Group=dexidp
+WorkingDirectory=/var/lib/dex
+StateDirectory=dex
+StateDirectoryMode=0700
+ExecStart=/usr/bin/dex serve /etc/dex/config.yaml
+Restart=on-failure
+RestartSec=5s
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target
