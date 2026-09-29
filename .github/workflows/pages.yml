@@ -1,0 +1,28 @@
+name: Deploy APT Repository
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'apt-repo/**'
+  workflow_dispatch:
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+concurrency:
+  group: dex-apt-update
+  cancel-in-progress: false
+jobs:
+  deploy:
+    runs-on: ubuntu-24.04
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: apt-repo
+      - uses: actions/deploy-pages@v4
+        id: deployment

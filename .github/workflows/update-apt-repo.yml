@@ -1,0 +1,111 @@
+name: Update APT Repository
+on:
+  schedule:
+    - cron: '0 6 * * *'
+  workflow_dispatch:
+
+concurrency:
+  group: dex-apt-update
+  cancel-in-progress: false
+
+jobs:
+  releases:
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+    outputs:
+      tags: ${{ steps.select.outputs.tags }}
+      has_new: ${{ steps.select.outputs.has_new }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Find new stable releases
+        id: select
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python3 scripts/select_releases.py
+
+  build:
+    needs: releases
+    if: needs.releases.outputs.has_new == 'true'
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - arch: amd64
+            runner: ubuntu-24.04
+          - arch: arm64
+            runner: ubuntu-24.04-arm
+    runs-on: ${{ matrix.runner }}
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v6
+        with:
+          go-version: '1.25.0'
+          cache: false
+      - name: Fetch Dex and build packages
+        env:
+          TAGS: ${{ needs.releases.outputs.tags }}
+          ARCH: ${{ matrix.arch }}
+        run: |
+          git clone --filter=blob:none --no-checkout https://github.com/dexidp/dex.git dex-src
+          mkdir -p packages
+          echo "$TAGS" | python3 -c 'import json,sys; print("\n".join(json.load(sys.stdin)))' | while IFS= read -r tag; do
+            bash scripts/build-package.sh "$tag" "$ARCH"
+            mv "dex_${tag#v}_${ARCH}.deb" packages/
+          done
+      - uses: actions/upload-artifact@v4
+        with:
+          name: packages-${{ matrix.arch }}
+          path: packages/*.deb
+          if-no-files-found: error
+
+  publish:
+    needs: [releases, build]
+    if: needs.releases.outputs.has_new == 'true'
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: packages-*
+          path: apt-repo/pool/main
+          merge-multiple: true
+      - name: Generate metadata and sign
+        env:
+          GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
+          GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
+          GPG_KEY_ID: ${{ secrets.GPG_KEY_ID }}
+        run: |
+          test -n "$GPG_PRIVATE_KEY" && test -n "$GPG_KEY_ID"
+          printf '%s\n' "$GPG_PRIVATE_KEY" | gpg --batch --import
+          python3 scripts/generate_repo.py
+          gpg --batch --yes --pinentry-mode loopback --passphrase "$GPG_PASSPHRASE" --local-user "$GPG_KEY_ID" --armor --detach-sign --output apt-repo/dists/stable/Release.gpg apt-repo/dists/stable/Release
+          gpg --batch --yes --pinentry-mode loopback --passphrase "$GPG_PASSPHRASE" --local-user "$GPG_KEY_ID" --clearsign --output apt-repo/dists/stable/InRelease apt-repo/dists/stable/Release
+          gpg --armor --export "$GPG_KEY_ID" > apt-repo/pubkey.gpg
+          touch apt-repo/.nojekyll
+      - name: Commit new versions
+        run: |
+          git config user.email 'github-actions[bot]@users.noreply.github.com'
+          git config user.name 'github-actions[bot]'
+          git add apt-repo
+          git diff --cached --quiet || git commit -m 'Update Dex APT repository'
+          git push
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: apt-repo
+      - name: Deploy Pages
+        id: deploy
+        uses: actions/deploy-pages@v4
+
