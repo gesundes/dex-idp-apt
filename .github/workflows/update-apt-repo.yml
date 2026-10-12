@@ -3,6 +3,15 @@ on:
   schedule:
     - cron: '0 6 * * *'
   workflow_dispatch:
+    inputs:
+      rebuild:
+        description: Replace the entire repository with one stable release
+        type: boolean
+        default: false
+      tag:
+        description: Stable tag required for a full rebuild (vX.Y.Z)
+        type: string
+        default: ""
 
 concurrency:
   group: dex-apt-update
@@ -22,6 +31,8 @@ jobs:
         id: select
         env:
           GH_TOKEN: ${{ github.token }}
+          REBUILD: ${{ inputs.rebuild || false }}
+          REBUILD_TAG: ${{ inputs.tag }}
         run: python3 scripts/select_releases.py
 
   build:
@@ -55,8 +66,10 @@ jobs:
           mkdir -p packages
           echo "$TAGS" | python3 -c 'import json,sys; print("\n".join(json.load(sys.stdin)))' | while IFS= read -r tag; do
             bash scripts/build-package.sh "$tag" "$ARCH"
-            mv "dex_${tag#v}-$(cat packaging/revision)_${ARCH}.deb" packages/
+            mv "dexidp_${tag#v}_${ARCH}.deb" packages/
           done
+      - name: Verify package lifecycle
+        run: python3 scripts/verify_packages.py packages
       - uses: actions/upload-artifact@v4
         with:
           name: packages-${{ matrix.arch }}
@@ -69,15 +82,14 @@ jobs:
     runs-on: ubuntu-24.04
     permissions:
       contents: write
-      pages: write
-      id-token: write
-    environment:
-      name: github-pages
-      url: ${{ steps.deploy.outputs.page_url }}
     steps:
       - uses: actions/checkout@v4
         with:
           persist-credentials: true
+          ref: ${{ github.ref_name }}
+      - name: Clear repository for full rebuild
+        if: inputs.rebuild == true
+        run: python3 -c "import shutil; shutil.rmtree('apt-repo')"
       - uses: actions/download-artifact@v4
         with:
           pattern: packages-*
@@ -85,6 +97,8 @@ jobs:
           merge-multiple: true
       - name: Generate metadata and sign
         env:
+          REBUILD: ${{ inputs.rebuild || false }}
+          REBUILD_TAG: ${{ inputs.tag }}
           GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
           GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
           GPG_KEY_ID: ${{ secrets.GPG_KEY_ID }}
@@ -96,6 +110,9 @@ jobs:
           gpg --batch --yes --pinentry-mode loopback --passphrase "$GPG_PASSPHRASE" --local-user "$GPG_KEY_ID" --clearsign --output apt-repo/dists/stable/InRelease apt-repo/dists/stable/Release
           gpg --armor --export "$GPG_KEY_ID" > apt-repo/pubkey.gpg
           touch apt-repo/.nojekyll
+          gpg --verify apt-repo/dists/stable/Release.gpg apt-repo/dists/stable/Release
+          gpg --verify apt-repo/dists/stable/InRelease
+          python3 scripts/verify_repo.py
       - name: Commit new versions
         run: |
           git config user.email 'github-actions[bot]@users.noreply.github.com'
@@ -103,6 +120,22 @@ jobs:
           git add apt-repo
           git diff --cached --quiet || git commit -m 'Update Dex APT repository'
           git push
+
+  deploy:
+    needs: publish
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:

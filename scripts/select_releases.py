@@ -14,9 +14,9 @@ def version(tag):
     return tuple(map(int, match.groups())) if match else None
 
 
-def select(releases, existing, current_revision=None):
-    if current_revision is None:
-        current_revision = {}
+def select(releases, existing, architectures=None):
+    if architectures is None:
+        architectures = {}
     stable = [(version(item["tag_name"]), item["tag_name"]) for item in releases
               if not item["draft"] and not item["prerelease"] and version(item["tag_name"])]
     stable.sort(reverse=True)
@@ -26,7 +26,7 @@ def select(releases, existing, current_revision=None):
         return [stable[0][1]]
     newest = max(existing)
     tags = [tag for number, tag in reversed(stable) if number > newest]
-    if current_revision.get(newest) != {"amd64", "arm64"}:
+    if architectures.get(newest) != {"amd64", "arm64"}:
         for number, tag in stable:
             if number == newest:
                 tags.insert(0, tag)
@@ -35,15 +35,16 @@ def select(releases, existing, current_revision=None):
 
 
 def main():
-    revision = int(Path("packaging/revision").read_text().strip())
-    existing = {tuple(map(int, match.groups()[:3]))
-                for path in Path("apt-repo/pool/main").glob("dex_*_*.deb")
-                if (match := re.fullmatch(r"dex_(\d+)\.(\d+)\.(\d+)(?:-(\d+))?_(?:amd64|arm64)\.deb", path.name))}
-    current_revision = {}
-    for path in Path("apt-repo/pool/main").glob("dex_*_*.deb"):
-        match = re.fullmatch(r"dex_(\d+)\.(\d+)\.(\d+)-(\d+)_(amd64|arm64)\.deb", path.name)
-        if match and int(match.group(4)) == revision:
-            current_revision.setdefault(tuple(map(int, match.groups()[:3])), set()).add(match.group(5))
+    architectures = {}
+    for path in Path("apt-repo/pool/main").glob("dexidp_*_*.deb"):
+        match = re.fullmatch(r"dexidp_(\d+)\.(\d+)\.(\d+)_(amd64|arm64)\.deb", path.name)
+        if match:
+            architectures.setdefault(tuple(map(int, match.groups()[:3])), set()).add(match.group(4))
+    existing = set(architectures)
+    rebuild = os.environ.get("REBUILD", "false") == "true"
+    requested = os.environ.get("REBUILD_TAG", "")
+    if rebuild and not version(requested):
+        raise ValueError("Full rebuild requires a stable vX.Y.Z tag")
     token = os.environ.get("GH_TOKEN", "")
     headers = {"Accept": "application/vnd.github+json", "User-Agent": "dex-idp-apt"}
     if token:
@@ -54,9 +55,14 @@ def main():
         with urlopen(request, timeout=30) as response:
             batch = json.load(response)
         releases.extend(batch)
-        if not batch or not existing or any(version(item["tag_name"]) in existing for item in batch):
+        if not batch or (rebuild and any(item["tag_name"] == requested for item in batch)) or (not rebuild and (not existing or any(version(item["tag_name"]) in existing for item in batch))):
             break
-    tags = select(releases, existing, current_revision)
+    if rebuild:
+        if not any(item["tag_name"] == requested and not item["draft"] and not item["prerelease"] for item in releases):
+            raise ValueError("Requested stable release not found")
+        tags = [requested]
+    else:
+        tags = select(releases, existing, architectures)
     with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as output:
         output.write(f"tags={json.dumps(tags, separators=(',', ':'))}\n")
         output.write(f"has_new={'true' if tags else 'false'}\n")

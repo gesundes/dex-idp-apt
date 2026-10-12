@@ -52,7 +52,7 @@ def main():
 <pre>curl -fsSL {url}/pubkey.gpg | sudo gpg --dearmor -o /etc/apt/keyrings/dex.gpg
 echo "deb [signed-by=/etc/apt/keyrings/dex.gpg] {url} stable main" | sudo tee /etc/apt/sources.list.d/dex.list
 sudo apt update
-apt-cache policy dex</pre>
+sudo apt install dexidp</pre>
 <h2>Packages</h2><ul>{links}</ul><p><a href="pubkey.gpg">Repository signing key</a></p></html>
 ''')
 
