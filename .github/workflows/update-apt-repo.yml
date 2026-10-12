@@ -46,6 +46,8 @@ jobs:
           cache: false
       - name: Fetch Dex and build packages
         env:
+          # Allow each Dex tag to select the toolchain required by its go.mod.
+          GOTOOLCHAIN: auto
           TAGS: ${{ needs.releases.outputs.tags }}
           ARCH: ${{ matrix.arch }}
         run: |
