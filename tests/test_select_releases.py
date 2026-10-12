@@ -11,7 +11,10 @@ class SelectReleasesTest(unittest.TestCase):
     def test_first_run_builds_latest_stable_release(self):
         self.assertEqual(select([release("v2.45.0"), release("v2.46.0", prerelease=True)], set()), ["v2.45.0"])
 
-    def test_revision_change_rebuilds_latest_and_newer_releases(self):
+    def test_no_new_release(self):
+        self.assertEqual(select([release("v2.46.0")], {(2, 46, 0)}, {(2, 46, 0): {"amd64", "arm64"}}), [])
+
+    def test_missing_architectures_rebuilds_latest_and_newer_releases(self):
         releases = [release("v2.46.0"), release("v2.45.1"), release("v2.45.0")]
         self.assertEqual(select(releases, {(2, 45, 1)}, {}), ["v2.45.1", "v2.46.0"])
 
@@ -19,6 +22,9 @@ class SelectReleasesTest(unittest.TestCase):
         releases = [release("v2.46.0"), release("v2.45.1")]
         current = {(2, 45, 1): {"amd64", "arm64"}}
         self.assertEqual(select(releases, {(2, 45, 1)}, current), ["v2.46.0"])
+
+    def test_no_new_release(self):
+        self.assertEqual(select([release("v2.46.0")], {(2, 46, 0)}, {(2, 46, 0): {"amd64", "arm64"}}), [])
 
     def test_missing_architecture_rebuilds_release(self):
         releases = [release("v2.45.1")]

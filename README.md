@@ -2,7 +2,7 @@
 
 Unofficial APT repository for [Dex](https://github.com/dexidp/dex). GitHub Actions builds packages from published stable Dex release tags for native `amd64` and `arm64` GitHub hosted Linux runners. Packages are retained in `apt-repo/pool/main`, indexed for APT, signed, and published on GitHub Pages.
 
-The daily workflow checks the Dex releases API at 06:00 UTC. On the first run it builds the latest stable release. Later runs add every newer stable release, retaining earlier package versions. Changing `packaging/revision` causes the newest existing Dex version to be rebuilt with the new package layout. A manual run is available in GitHub Actions. Failed builds stop publication, so one architecture cannot silently disappear from the repository.
+The daily workflow checks the Dex releases API at 06:00 UTC. On the first run it builds the latest stable release. Later runs add every newer stable release, retaining earlier package versions. Package versions match upstream versions without a Debian revision suffix. A manual full rebuild requires an explicit stable tag and replaces all retained packages after both architectures succeed. A manual run is available in GitHub Actions. Failed builds stop publication, so one architecture cannot silently disappear from the repository.
 
 ## Setup
 
@@ -24,7 +24,7 @@ echo 'deb [signed-by=/etc/apt/keyrings/dex.gpg] https://gesundes.github.io/dex-i
 sudo apt update
 ```
 
-The package name is `dex`. It contains `/usr/bin/dex`, `/lib/systemd/system/dexidp.service`, and `/etc/dex/config.yaml`. On first installation, the package creates a `dexidp` system user, enables `dexidp.service`, and starts it when systemd is running. The configuration file is a dpkg conffile, so local edits are retained on upgrades. The unit runs as `dexidp`, stores SQLite data in `/var/lib/dex`, and listens only on `127.0.0.1:5556` by default. The starter configuration enables the local password connector but creates no users or clients.
+Install with `sudo apt install dexidp`. The package name is `dexidp`. It contains `/usr/bin/dex`, `/lib/systemd/system/dexidp.service`, and `/etc/dex/config.yaml`. On first installation, the package creates a `dexidp` system user, enables `dexidp.service`, and starts it when systemd is running. The configuration file is a dpkg conffile, so local edits are retained on upgrades. The unit runs as `dexidp`, stores SQLite data in `/var/lib/dex`, and listens only on `127.0.0.1:5556` by default. The starter configuration enables the local password connector but creates no users or clients.
 
 Before connecting applications to Dex, edit `/etc/dex/config.yaml` to set the real issuer URL, configure TLS or a trusted reverse proxy, and add connectors and clients. Then restart the service:
 
@@ -50,3 +50,5 @@ The service definition is maintained in [`packaging/dexidp.service`](packaging/d
 Packages are built from upstream source tags because current Dex releases have no binary assets. Builds use native GitHub hosted runners with CGO enabled for Dex's SQLite support. The `ubuntu-24.04-arm` runner is available for public repositories; if runner availability changes, that architecture must be disabled deliberately rather than publishing a partial repository.
 
 This is an unofficial repository. Dex upstream maintains the [source releases](https://github.com/dexidp/dex/releases).
+
+Manual rebuild: run **Update APT Repository** on the desired branch with `rebuild=true` and `tag=v2.46.0`. The signed repository is committed to that branch; only runs on `main` deploy Pages.

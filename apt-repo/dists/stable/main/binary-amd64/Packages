@@ -1,5 +1,5 @@
-Package: dex
-Version: 2.45.1-1
+Package: dexidp
+Version: 2.46.0
 Section: net
 Priority: optional
 Architecture: amd64
@@ -8,41 +8,9 @@ Homepage: https://github.com/dexidp/dex
 Depends: libc6, adduser, init-system-helpers
 Description: Dex OpenID Connect identity provider
  Unofficial package built from the upstream Dex release tag.
-Filename: pool/main/dex_2.45.1-1_amd64.deb
-Size: 10614598
-MD5sum: 1cad46e6d86a3cc503182f8720183dd6
-SHA256: a41909482374ae026ece61844e193d99071d0d6093fc991172ca49af7d641120
-SHA512: 19de80ea8c7d023d5d5ab3ad0f41ab272ae4eae53ef7a23e918ffeeba4dce5457a3effa0aad0c500f84b079d7c60982c2118a36711942971b7dae0a853d6b881
-
-Package: dex
-Version: 2.45.1
-Section: net
-Priority: optional
-Architecture: amd64
-Maintainer: Dex APT Repository <noreply@github.com>
-Homepage: https://github.com/dexidp/dex
-Depends: libc6
-Description: Dex OpenID Connect identity provider
- Unofficial package built from the upstream Dex release tag.
-Filename: pool/main/dex_2.45.1_amd64.deb
-Size: 10613682
-MD5sum: 68a965d7e3b5676f614dfa768cfa5621
-SHA256: 43a29b0a6997e0df9c681a341dc20b1bda4b44164472f9eb3afa5ef3b1ac444c
-SHA512: 681f5c23bccfc2bfef1319856cd7c1058c2c9e937c3c1aeb2637d871e5e1dbed805b5e1d2874f5beba8986b2b2fc1cfc07fa6b02b175ada617242cfffdf6b611
-
-Package: dex
-Version: 2.46.0-1
-Section: net
-Priority: optional
-Architecture: amd64
-Maintainer: Dex APT Repository <noreply@github.com>
-Homepage: https://github.com/dexidp/dex
-Depends: libc6, adduser, init-system-helpers
-Description: Dex OpenID Connect identity provider
- Unofficial package built from the upstream Dex release tag.
-Filename: pool/main/dex_2.46.0-1_amd64.deb
-Size: 12369082
-MD5sum: dea5deb9d3eab57c7194a04c83b888d7
-SHA256: 16bd84bffa36ba8ccf5e1a0b3d19c77b0bd2a12a672d9cc278602fc2ba8d54b2
-SHA512: db04956297564e7ff3cb7ec0ef59ebc5b9206e721bbc568d8966d66684c7330d5c78f8aed57be5e64650f519521cb12a9169917f0059a8b42be77320d7fd50d2
+Filename: pool/main/dexidp_2.46.0_amd64.deb
+Size: 12369652
+MD5sum: 6b47472aa461dc6da92bf9a1da4f6929
+SHA256: 7532dc5d52f324c52b63b82243713d699f2b853e01a5df76d94cda9bbfd6bfb2
+SHA512: 366f1aa3572e4f990d59393a59911934ad9d13dfeb174fc5a5e4ea9e75413fa413cf6c01dddb69dbb508834a33ddb3ad9526372cb4652ca57139881b50f48549
 
