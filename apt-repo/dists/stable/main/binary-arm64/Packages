@@ -14,3 +14,19 @@ MD5sum: e671023ce0cd3a9bda2b92135de92b18
 SHA256: 7ca8f20015a0b8f98fe2677bb5ef9d71fd558e31c86a19d5a8464f9216b59f2d
 SHA512: 05ddbe0e5fcc6b10b3554d5373d650c69258f481899f2578432a2aea5c53342db700331d8db44cf9e9b2b0f2c8c7e6ee9f331566462a658eae35e24e803fd8c8
 
+Package: dexidp
+Version: 2.46.1
+Section: net
+Priority: optional
+Architecture: arm64
+Maintainer: Dex APT Repository <noreply@github.com>
+Homepage: https://github.com/dexidp/dex
+Depends: libc6, adduser, init-system-helpers
+Description: Dex OpenID Connect identity provider
+ Unofficial package built from the upstream Dex release tag.
+Filename: pool/main/dexidp_2.46.1_arm64.deb
+Size: 11030242
+MD5sum: b4fd8afffb918347c725a322ca55bdb9
+SHA256: 280fe1376366635d2f9e5de0dc1e8793f4fbf79b09f76eee1b6fe5e983300a4a
+SHA512: 98dec0c9ef9fa9f6bc30021c5460917996155fdb7aa7df033eabbdeb17b25f388ae89c1ad59675067d82215e8ac5f636d1a2fe9e5357eabe311fd7897b468845
+
